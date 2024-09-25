@@ -1,0 +1,37 @@
+table patient {
+  id integer [pk, note: "PatientNr"]
+  name varchar
+  disease varchar
+  treated_by integer [ref: - doctor.id]
+  room_id integer [ref: - room.id]
+  from datetime
+  to datetime
+}
+
+table doctor {
+  id integer [pk, ref: - station_personell.id]
+  area varchar
+  rank varchar
+}
+
+table caregiver {
+  id integer [pk, ref: - station_personell.id]
+  qualification varchar
+}
+
+table station_personell {
+  id integer [pk, note: "PersNr"]
+  name varchar
+  works_for interger [ref: - station.id]
+}
+
+table station {
+  id integer [pk, note: "StatNr"]
+  name varchar
+}
+
+table room {
+  id integer [pk, note: "RoomNr"]
+  station_id integer [ref: - station.id, not null]
+  n_beds integer
+}

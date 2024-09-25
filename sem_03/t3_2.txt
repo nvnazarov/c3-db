@@ -1,0 +1,33 @@
+table station {
+  id integer [pk]
+  name varchar [unique]
+  n_tracks integer
+  city_id integer [ref: - city.id]
+}
+
+table city {
+  id integer [pk]
+  name varchar
+  region varchar
+}
+
+table train {
+  id integer [pk, note: "TrainNr"]
+  length integer
+  start_station_id integer [ref: - station.id]
+  end_station_id integer [ref: - station.id]
+}
+
+table connected {
+  id integer [pk]
+  from_id integer [ref: - station.id]
+  to_id integer [ref: - station.id]
+  departure datetime
+  arrival datetime
+}
+
+table train_connected {
+  id integer [pk]
+  train_id integer [ref: - train.id]
+  connected_id integer [ref: - connected.id]
+}

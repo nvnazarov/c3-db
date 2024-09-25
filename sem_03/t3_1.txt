@@ -1,0 +1,48 @@
+table copy {
+  id integer [pk]
+  location varchar2
+  book_id integer [ref: - book.id]
+}
+
+table book {
+  id integer [pk]
+  isbn varchar [unique]
+  year integer
+  title varchar
+  author varchar
+  pages integer
+  publisher_id integer [ref: - publisher.id]
+}
+
+table publisher {
+  id integer [pk]
+  name varchar [not null]
+  address varchar [not null]
+}
+
+table book_category {
+  id integer [pk]
+  book_id integer [ref: - book.id]
+  category_id integer [ref: - category.id]
+}
+
+table category {
+  id integer [pk]
+  name varchar [unique]
+  parent_category_id integer [ref: - category.id]
+}
+
+table reader {
+  id integer [pk]
+  name varchar
+  surname varchar
+  address varchar
+  birthday date
+}
+
+table copy_reader {
+  id integer
+  reader_id integer [ref: - reader.id]
+  copy_id integer [ref: - copy.id]
+  return_date date
+}
