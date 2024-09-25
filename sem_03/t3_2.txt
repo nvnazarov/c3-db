@@ -20,8 +20,8 @@ table train {
 
 table connected {
   id integer [pk]
-  from_id integer [ref: - station.id]
-  to_id integer [ref: - station.id]
+  from_station_id integer [ref: - station.id]
+  to_station_id integer [ref: - station.id]
   departure datetime
   arrival datetime
 }
