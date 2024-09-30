@@ -1,0 +1,3 @@
+[submodule "sem_04/task"]
+	path = sem_04/task
+	url = https://github.com/nemirlev/db_less_4
