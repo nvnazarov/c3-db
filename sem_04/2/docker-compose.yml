@@ -1,0 +1,36 @@
+services:
+  psql-library:
+    container_name: psql-library
+    image: postgres:alpine
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_USER: student
+      POSTGRES_PASSWORD: student
+      POSTGRES_DB: db
+    volumes:
+      - ./library.sql:/docker-entrypoint-initdb.d/init.sql
+
+  psql-trains:
+    container_name: psql-trains
+    image: postgres:alpine
+    ports:
+      - 5434:5432
+    environment:
+      POSTGRES_USER: student
+      POSTGRES_PASSWORD: student
+      POSTGRES_DB: db
+    volumes:
+      - ./trains.sql:/docker-entrypoint-initdb.d/init.sql
+
+  psql-hospital:
+    container_name: psql-hospital
+    image: postgres:alpine
+    ports:
+      - 5435:5432
+    environment:
+      POSTGRES_USER: student
+      POSTGRES_PASSWORD: student
+      POSTGRES_DB: db
+    volumes:
+      - ./hospital.sql:/docker-entrypoint-initdb.d/init.sql

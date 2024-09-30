@@ -1,4 +1,4 @@
-# ДЗ:
+# ДЗ часть 1
 
 ## 1. Создается docker-compose.yml с двумя сервисами: PostgreSQL
 
