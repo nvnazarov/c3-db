@@ -1,8 +1,14 @@
 -- Какие книги (ISBN) из категории "Горы" не относятся к категории "Путешествия"?
 -- Подкатегории не обязательно принимать во внимание!
 
-select ISBN
-from BookCat
+select a.ISBN
+from BookCat a
 where
-    CategoryName = 'Горы'
-    and (ISBN, 'Путешествия') not in BookCat;
+    a.CategoryName = 'Горы'
+    and not exists (
+        select 1
+        from BookCat b
+        where
+            a.ISBN = b.ISBN and
+            b.CategoryName = 'Путешествия'
+    );
