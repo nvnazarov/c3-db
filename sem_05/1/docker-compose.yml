@@ -1,0 +1,12 @@
+services:
+  psql-library:
+    container_name: psql-library
+    image: postgres:alpine
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_USER: student
+      POSTGRES_PASSWORD: student
+      POSTGRES_DB: db
+    volumes:
+      - ./sql/library.sql:/docker-entrypoint-initdb.d/init.sql
