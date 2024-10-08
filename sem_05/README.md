@@ -112,7 +112,7 @@ python3 insert.py
 
 ## Запросы
 
-Запросы можно посмотреть в `./1/sql`, или ниже:
+Запросы можно посмотреть в `./2/sql`, или ниже:
 
 ```sql
 -- Найдите все прямые рейсы из Москвы в Тверь.
@@ -141,7 +141,7 @@ from
     join Station sb on c.tostation = sb.name
 where
     sa.cityname = 'Moscow' and
-    sb.cityname = 'Tver' and
+    sb.cityname = 'St.Petersburg' and
     extract(day from c.departure) = extract(day from c.arrival);
 ```
 
