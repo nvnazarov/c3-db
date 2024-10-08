@@ -10,5 +10,5 @@ from
     join Station sb on c.tostation = sb.name
 where
     sa.cityname = 'Moscow' and
-    sb.cityname = 'Tver' and
+    sb.cityname = 'St.Petersburg' and
     extract(day from c.departure) = extract(day from c.arrival);
