@@ -3,14 +3,14 @@
 * Показать все названия книг вместе с именами издателей.
 
 ```sql
-SELECT Title, PubName FROM Book;
+SELECT title, publisher_name FROM book;
 ```
 
 * В какой книге наибольшее количество страниц?
 
 ```sql
-SELECT ISBN FROM Book
-WHERE PagesNum = max(PagesNum);
+SELECT ISBN, Title, number_of_pages FROM book
+WHERE number_of_pages = (SELECT MAX(number_of_pages) FROM book);
 ```
 
 Если нужно только одну книгу, то в конце нужно добавить `LIMIT 1`.
@@ -18,55 +18,67 @@ WHERE PagesNum = max(PagesNum);
 * Какие авторы написали более 5 книг?
 
 ```sql
-SELECT Author FROM Book GROUP BY Author
-WHERE count() > 5;
+SELECT author FROM book GROUP BY author HAVING COUNT(*) > 5;
 ```
 
 * В каких книгах более чем в два раза больше страниц, чем среднее количество страниц для всех книг?
 
 ```sql
-SELECT ISBN FROM Book WHERE PagesNum > 2*avg(PagesNum);
+SELECT isbn FROM book WHERE number_of_pages > 2*(SELECT AVG(number_of_pages) FROM book);
 ```
 
 * Какие категории содержат подкатегории?
 
 ```sql
-SELECT DISTINCT ParentCat from Category where ParentCat != null;
+SELECT DISTINCT parentcat FROM category WHERE parentcat IS NOT NULL;
 ```
 
 * У какого автора (предположим, что имена авторов уникальны) написано максимальное количество книг?
 
 ```sql
-SELECT Author FROM Book GROUP BY Author WHERE ;
+WITH author_books_count AS (
+    SELECT author, COUNT(*) AS books_count FROM book GROUP BY author
+)
+SELECT * FROM author_books_count
+WHERE books_count = (SELECT MAX(books_count) FROM author_books_count);
 ```
 
 * Какие читатели забронировали все книги (не копии), написанные "Марком Твеном"?
 
 ```sql
-SELECT 
+WITH mark_books_readers AS (
+    SELECT DISTINCT br.id, b.isbn
+    FROM borrowing br
+        JOIN book b ON b.isbn = br.isbn
+    WHERE b.author = 'Марк Твен'
+)
+SELECT id FROM mark_books_readers GROUP BY id
+HAVING COUNT(*) = (SELECT COUNT(*) FROM book WHERE author = 'Марк Твен');
 ```
 
 * Какие книги имеют более одной копии?
 
 ```sql
-SELECT ISBN FROM Copy GROUP BY ISBN WHERE count() > 1;
+SELECT isbn, COUNT(*) as number_of_copies FROM copy GROUP BY isbn HAVING COUNT(*) > 1;
 ```
 
 * ТОП 10 самых старых книг
 
 ```sql
-SELECT ISBN FROM BOOK ORDER BY PubYear LIMIT 10; 
+SELECT isbn, year FROM book ORDER BY year LIMIT 10;
 ```
 
 * Перечислите все категории в категории “Спорт” (с любым уровнем вложености).
 
 ```sql
-WITH RECURSIVE SportSubcat AS (
-    SELECT CategoryName FROM Category WHERE CategoryName = 'Спорт'
+WITH RECURSIVE sport_subcats(categoryname) AS (
+    VALUES ('Спорт')
     UNION
-    SELECT CategoryName FROM Category WHERE ParentCat IN SportSubcat
+    SELECT c.categoryname
+    FROM sport_subcats ss
+    JOIN category c ON ss.categoryname = c.parentcat
 )
-SELECT * FROM SportsSubcat;
+SELECT * FROM sport_subcats;
 ```
 
 # Task 2
@@ -74,12 +86,14 @@ SELECT * FROM SportsSubcat;
 * Добавьте запись о бронировании читателем ‘Василеем Петровым’ книги с ISBN 123456 и номером копии 4.
 
 ```sql
-INSERT INTO Borrowing VALUES(
+INSERT INTO borrowing
+VALUES
+(
     (
-        SELECT ReaderNr FROM Reader
+        SELECT id FROM reader
         WHERE
-            FirstName = 'Василий' AND
-            LastName = 'Петров'
+            firstname = 'Василий' AND
+            lastname = 'Петров'
     ),
     '123456', 4, CURRENT_DATE
 );
@@ -88,18 +102,18 @@ INSERT INTO Borrowing VALUES(
 * Удалить все книги, год публикации которых превышает 2000 год.
 
 ```sql
-DELETE FROM Book WHERE PubYear > 2000;
+DELETE FROM book WHERE year > 2000;
 ```
 
 * Измените дату возврата для всех книг категории "Базы данных", начиная с 01.01.2016, чтобы они были в заимствовании на 30 дней дольше (предположим, что в SQL можно добавлять числа к датам).
 
 ```sql
-UPDATE TABLE Borrowing
-SET ReturnDate = ReturnDate + 30
-WHERE ReturnDate >= '01.01.2016' AND ISBN IN (
-    SELECT ISBN
-    FROM BookCat
-    WHERE CatergoryName = 'Базы данных'
+UPDATE borrowing
+SET returndate = returndate + 30
+WHERE returndate >= '01.01.2016' AND isbn IN (
+    SELECT isbn
+    FROM bookcategory
+    WHERE categoryname = 'Базы данных'
 );
 ```
 
@@ -118,7 +132,7 @@ WHERE ReturnDate >= '01.01.2016' AND ISBN IN (
 ```sql
 SELECT s.Name, s.MatrNr FROM Student s
 WHERE NOT EXISTS (
-SELECT * FROM Check c WHERE c.MatrNr = s.MatrNr AND c.Note >= 4.0 ) ;
+SELECT * FROM Check c WHERE c.MatrNr = s.MatrNr AND c.Note >= 4.0 );
 ```
 
 Студенты (имя и MatrNr), которые никогда не получали оценку $\ge 4.0$. 
