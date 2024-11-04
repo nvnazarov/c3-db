@@ -52,21 +52,21 @@ QUERY_3 = (
 # В какой стране был наибольший процент игроков (из перечисленных в
 # наборе данных), чьи имена начинались с гласной?
 QUERY_4 = (
-    sa.select(models.Country.id, models.Country.name)
+    sa.select(sa.text("c_id"), sa.text("c_name"))
     .select_from(
         sa.select(
-            models.Country.id,
-            models.Country.name,
+            models.Country.id.label("c_id"),
+            models.Country.name.label("c_name"),
             sa.func.count("*").label("athletes_count"),
         )
         .join(models.Athlete, models.Athlete.country_id == models.Country.id)
         .group_by(models.Country.id)
         .subquery()
     )
-    .join(models.Athlete, models.Athlete.country_id == models.Country.id)
+    .join(models.Athlete, models.Athlete.country_id == sa.text("c_id"))
     .where(models.Athlete.name.regexp_match(r"^[AOEIU]"))
-    .group_by(models.Country.id)
-    .order_by(sa.desc(sa.func.count("*") / "athletes_count"))
+    .group_by(sa.text("c_id"), sa.text("c_name"), sa.text("athletes_count"))
+    .order_by(sa.desc(sa.func.count("*") / sa.text("athletes_count")))
     .limit(1)
 )
 

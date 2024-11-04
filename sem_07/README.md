@@ -131,7 +131,7 @@
      ('577613db8f', 'ATH2004'), ('49aa549f42', 'ATH2004'), ('545b9692e9', 'SYD2000'), ('e9f0544009', 'ATH2004')]
 
     ### QUERY 4 ###
-    An error occured: (psycopg2.errors.UndefinedTable) missing FROM-clause entry for table "countries"
+    [('MEX', 'Mexico                                  ')]
 
     ### QUERY 5 ###
     [('China                                   ', Decimal('3.0226913439187984197E-9')),
