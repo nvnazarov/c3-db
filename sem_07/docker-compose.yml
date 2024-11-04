@@ -1,0 +1,21 @@
+services:
+  olymp:
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: superadmin
+      POSTGRES_PASSWORD: superadmin
+      POSTGRES_DB: olymp
+    ports:
+      - "5440:5432"
+    # volumes:
+    #   - olimp_bd_data:/var/lib/postgresql/data
+    #   - ./sql/olimp/:/docker-entrypoint-initdb.d/
+    networks:
+      - less_5_network
+
+# volumes:
+#   olymp_bd_data:
+
+networks:
+  less_5_network:
+    driver: bridge
