@@ -149,3 +149,86 @@ ALTER TABLE
 ```
 
 ## 3
+
+a. Создаем процедуру (см. `./sql/3a.sql`).
+
+```
+jobs=# CREATE OR REPLACE PROCEDURE upd_jobsal(p_job_id VARCHAR(10), p_new_min_salary INTEGER, p_new_max_salary INTEGER)
+jobs-# LANGUAGE plpgsql
+jobs-# AS $$
+jobs$# DECLARE
+jobs$#     v_job RECORD;
+jobs$# BEGIN
+jobs$#     IF p_new_max_salary < p_new_min_salary THEN
+jobs$#         RAISE EXCEPTION 'Max salary % is less than min salary %.', p_new_max_salary, p_new_min_salary;
+jobs$#     END IF;
+jobs$#     
+jobs$#     SELECT * INTO v_job FROM jobs WHERE job_id = p_job_id;
+jobs$#     IF v_job IS NULL THEN
+jobs$#         RAISE EXCEPTION 'Job with id = % not found.', p_job_id;
+jobs$#     END IF;
+jobs$# 
+jobs$#     UPDATE jobs
+jobs$#     SET
+jobs$#         min_salary = p_new_min_salary,
+jobs$#         max_salary = p_new_max_salary
+jobs$#     WHERE job_id = p_job_id;
+jobs$#
+jobs$#     EXCEPTION
+jobs$#         WHEN SQLSTATE '55P03' THEN
+jobs$#             RAISE EXCEPTION 'The row in jobs table with job_id = % is locked.', p_job_id;
+jobs$#         WHEN OTHERS THEN
+jobs$#             RAISE;
+jobs$# END;
+jobs$# $$;
+CREATE PROCEDURE
+```
+
+b. Вызываем процедуру с `min_salary` > `max_salary` (см. `./sql/3b.sql`).
+
+```
+jobs=# CALL upd_jobsal('SY_ANAL', 7000, 140);
+ERROR:  Max salary 140 is less than min salary 7000.
+CONTEXT:  PL/pgSQL function upd_jobsal(character varying,integer,integer) line 6 at RAISE
+```
+
+c. Отключаем триггеры на таблицах `jobs` и `employees` (см. `./sql/3c.sql`).
+
+```
+jobs=# ALTER TABLE employees DISABLE TRIGGER ALL;
+ALTER TABLE
+jobs=# ALTER TABLE jobs DISABLE TRIGGER ALL;
+ALTER TABLE
+```
+
+d,e. Вызываем процедуру с нормальными параметрами и проверяем результат (см. `./sql/3d.sql` и `./sql/3e.sql`).
+
+```
+jobs=# BEGIN;
+BEGIN
+jobs=*# CALL upd_jobsal('SY_ANAL', 7000, 14000);
+CALL
+jobs=*# SELECT * FROM jobs WHERE job_id = 'SY_ANAL';
+ job_id  |    job_title    | min_salary | max_salary 
+---------+-----------------+------------+------------
+ SY_ANAL | Systems Analyst |       7000 |      14000
+(1 row)
+
+jobs=*# COMMIT;
+COMMIT
+```
+
+e. Включаем триггеры (см. `./sql/3e.sql`).
+
+```
+jobs=# ALTER TABLE employees ENABLE TRIGGER ALL;
+ALTER TABLE
+jobs=# ALTER TABLE jobs ENABLE TRIGGER ALL;
+ALTER TABLE
+```
+
+# 4
+
+# 5
+
+# 6

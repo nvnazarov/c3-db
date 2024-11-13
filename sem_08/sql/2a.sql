@@ -25,4 +25,4 @@ BEGIN
         salary = v_new_job.min_salary + 500
     WHERE employee_id = p_employee_id;
 END;
-$$
+$$;
