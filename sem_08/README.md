@@ -333,3 +333,86 @@ jobs=# SELECT * FROM get_job_count(176);
 
 # 6
 
+a. Создаем триггер (см. `./sql/6a.sql`).
+
+```
+jobs=# CREATE OR REPLACE TRIGGER check_sal_range
+jobs-# BEFORE UPDATE OF min_salary, max_salary ON jobs
+jobs-# FOR EACH ROW
+jobs-# EXECUTE FUNCTION check_sal_range_func();
+jobs=# CREATE OR REPLACE FUNCTION check_sal_range_func() 
+jobs-# RETURNS TRIGGER
+jobs-# LANGUAGE plpgsql
+jobs-# AS $$
+jobs$# DECLARE
+jobs$#     v_employee RECORD;
+jobs$# BEGIN
+jobs$#     FOR v_employee IN 
+jobs$#         SELECT *
+jobs$#         FROM employees
+jobs$#         WHERE job_id = NEW.job_id
+jobs$#     LOOP
+jobs$#         IF v_employee.salary < NEW.min_salary OR v_employee.salary > NEW.max_salary
+jobs$#         THEN
+jobs$#             RAISE EXCEPTION 
+jobs$#                 'Employee % salary % is out of the new salary range for job with job_id = %.',
+jobs$#                 v_employee.employee_id, v_employee.salary, NEW.job_id;
+jobs$#         END IF;
+jobs$#     END LOOP;
+jobs$# 
+jobs$#     RETURN NEW;
+jobs$# END;
+jobs$# $$;
+CREATE FUNCTION
+jobs=# 
+jobs=# CREATE OR REPLACE TRIGGER check_sal_range
+jobs-# BEFORE UPDATE OF min_salary, max_salary ON jobs
+jobs-# FOR EACH ROW
+jobs-# EXECUTE FUNCTION check_sal_range_func();
+CREATE TRIGGER
+```
+
+b. Проверяем работу триггера (см. `./sql/b.sql`).
+
+Выводим текущий разброс зарплаты и реальную зарплату для `job_id` = `SY_ANAL`.
+```
+jobs=# SELECT min_salary, max_salary FROM jobs WHERE job_id = 'SY_ANAL';
+ min_salary | max_salary 
+------------+------------
+       7000 |      14000
+(1 row)
+
+jobs=# SELECT employee_id, last_name, salary FROM employees WHERE job_id = 'SY_ANAL';
+ employee_id | last_name | salary  
+-------------+-----------+---------
+         106 | Pataballa | 6500.00
+(1 row)
+```
+
+Меняем мин. и макс. зарплату на 5000 и 7000, все ок.
+
+```
+jobs=# CALL upd_jobsal('SY_ANAL', 5000, 7000);
+CALL
+jobs=# SELECT * FROM jobs WHERE job_id = 'SY_ANAL';
+ job_id  |    job_title    | min_salary | max_salary 
+---------+-----------------+------------+------------
+ SY_ANAL | Systems Analyst |       5000 |       7000
+(1 row)
+```
+
+с. Пытаемся обновить зарплату так, чтобы у рабочего 106 зарплата вышла за границы.
+
+```
+jobs=# CALL upd_jobsal('SY_ANAL', 7000, 18000);
+ERROR:  Employee 106 salary 6500.00 is out of the new salary range for job with job_id = SY_ANAL.
+CONTEXT:  PL/pgSQL function check_sal_range_func() line 12 at RAISE
+SQL statement "UPDATE jobs
+    SET
+        min_salary = p_new_min_salary,
+        max_salary = p_new_max_salary
+    WHERE job_id = p_job_id"
+PL/pgSQL function upd_jobsal(character varying,integer,integer) line 14 at SQL statement
+```
+
+Как видим, триггер сработал правильно.
