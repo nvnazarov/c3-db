@@ -1,0 +1,11 @@
+services:
+  db-jobs:
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: superadmin
+      POSTGRES_PASSWORD: superadmin
+      POSTGRES_DB: jobs
+    ports:
+      - "5438:5432"
+    volumes:
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
