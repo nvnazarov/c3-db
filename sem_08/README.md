@@ -229,7 +229,7 @@ ALTER TABLE
 
 # 4
 
-a. Создаем процедуру (см. `./sql/4a.sql`).
+a. Создаем функцию (см. `./sql/4a.sql`).
 
 ```
 jobs=# CREATE OR REPLACE FUNCTION get_years_service(p_employee_id INTEGER)
@@ -253,7 +253,7 @@ jobs$# $$;
 CREATE FUNCTION
 ```
 
-b. Вызываем процедуру с некорректным работником (см. `./sql/4b.sql`).
+b. Вызываем функцию с некорректным работником (см. `./sql/4b.sql`).
 
 ```
 jobs=# SELECT get_years_service(999);
@@ -261,7 +261,7 @@ ERROR:  Employee with id = 999 not found.
 CONTEXT:  PL/pgSQL function get_years_service(integer) line 10 at RAISE
 ```
 
-c. Вызываем процедуру с корректными данными (см. `./sql/4c.sql`).
+c. Вызываем функцию с корректными данными (см. `./sql/4c.sql`).
 
 ```
 jobs=# SELECT get_years_service(106);
@@ -290,4 +290,46 @@ jobs=# SELECT * FROM job_history WHERE employee_id = 106;
 
 # 5
 
+a. Создаем функцию (см. `./sql/5a.sql`).
+
+```
+jobs=# CREATE OR REPLACE FUNCTION get_job_count(p_employee_id INTEGER)
+jobs-# RETURNS INTEGER
+jobs-# LANGUAGE plpgsql
+jobs-# AS $$
+jobs$# DECLARE
+jobs$#     v_employee_count INTEGER;
+jobs$#     v_jobs_count INTEGER;
+jobs$# BEGIN
+jobs$#     SELECT COUNT(*) INTO v_employee_count FROM employees WHERE employee_id = p_employee_id;
+jobs$#     IF v_employee_count = 0 THEN
+jobs$#         RAISE EXCEPTION 'Employee with id = % not found.', p_employee_id;
+jobs$#     END IF;
+jobs$# 
+jobs$#     SELECT COUNT(DISTINCT job_id) INTO v_jobs_count
+jobs$#     FROM (
+jobs$#         SELECT job_id
+jobs$#         FROM job_history
+jobs$#         WHERE employee_id = p_employee_id
+jobs$#         UNION
+jobs$#         SELECT job_id FROM employees WHERE employee_id = p_employee_id
+jobs$#     );
+jobs$#
+jobs$#     RETURN v_jobs_count;
+jobs$# END;
+jobs$# $$;
+CREATE FUNCTION
+```
+
+b. Вызываем функцию (см. `./sql/5b.sql`).
+
+```
+jobs=# SELECT * FROM get_job_count(176);
+ get_job_count
+---------------
+             2
+(1 row)
+```
+
 # 6
+
