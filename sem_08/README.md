@@ -229,6 +229,63 @@ ALTER TABLE
 
 # 4
 
+a. Создаем процедуру (см. `./sql/4a.sql`).
+
+```
+jobs=# CREATE OR REPLACE FUNCTION get_years_service(p_employee_id INTEGER)
+jobs-# RETURNS INTEGER
+jobs-# LANGUAGE plpgsql
+jobs-# AS $$
+jobs$# DECLARE
+jobs$#     v_years_service INTEGER;
+jobs$# BEGIN
+jobs$#     SELECT EXTRACT(YEAR FROM AGE(CURRENT_DATE, hire_date)) INTO v_years_service
+jobs$#     FROM employees
+jobs$#     WHERE employee_id = p_employee_id;
+jobs$# 
+jobs$#     IF v_years_service IS NULL THEN
+jobs$#         RAISE EXCEPTION 'Employee with id = % not found.', p_employee_id;
+jobs$#     END IF;
+jobs$# 
+jobs$#     RETURN v_years_service;
+jobs$# END;
+jobs$# $$;
+CREATE FUNCTION
+```
+
+b. Вызываем процедуру с некорректным работником (см. `./sql/4b.sql`).
+
+```
+jobs=# SELECT get_years_service(999);
+ERROR:  Employee with id = 999 not found.
+CONTEXT:  PL/pgSQL function get_years_service(integer) line 10 at RAISE
+```
+
+c. Вызываем процедуру с корректными данными (см. `./sql/4c.sql`).
+
+```
+jobs=# SELECT get_years_service(106);
+ get_years_service 
+-------------------
+                 0
+(1 row)
+```
+
+d. Проверяем результат, все ок (см. `./sql/4d.sql`).
+
+jobs=# SELECT * FROM employees WHERE employee_id = 106;
+ employee_id | first_name | last_name |  email   | phone_integer | hire_date  | job_id  | salary  | commission_pct | manager_id | department_id
+-------------+------------+-----------+----------+---------------+------------+---------+---------+----------------+------------+---------------
+         106 | Valli      | Pataballa | VPATABAL | 590.423.4560  | 2024-11-13 | SY_ANAL | 6500.00 |                |        103 |            60
+(1 row)
+
+jobs=# SELECT * FROM job_history WHERE employee_id = 106;
+ employee_id | start_date |  end_date  | job_id  | department_id
+-------------+------------+------------+---------+---------------
+         106 | 2000-01-01 | 2022-11-13 | IT_PROG |            60
+         106 | 2022-12-15 | 2024-11-13 | SY_ANAL |            60
+(2 rows)
+
 # 5
 
 # 6
