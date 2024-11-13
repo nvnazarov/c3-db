@@ -273,6 +273,7 @@ jobs=# SELECT get_years_service(106);
 
 d. Проверяем результат, все ок (см. `./sql/4d.sql`).
 
+```
 jobs=# SELECT * FROM employees WHERE employee_id = 106;
  employee_id | first_name | last_name |  email   | phone_integer | hire_date  | job_id  | salary  | commission_pct | manager_id | department_id
 -------------+------------+-----------+----------+---------------+------------+---------+---------+----------------+------------+---------------
@@ -285,6 +286,7 @@ jobs=# SELECT * FROM job_history WHERE employee_id = 106;
          106 | 2000-01-01 | 2022-11-13 | IT_PROG |            60
          106 | 2022-12-15 | 2024-11-13 | SY_ANAL |            60
 (2 rows)
+```
 
 # 5
 
